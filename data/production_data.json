@@ -1,0 +1,280 @@
+{
+  "lots": [
+    {
+      "id": "lot_101",
+      "lotNo": "001",
+      "createdAt": "2026-11-11T01:41:38.829Z",
+      "updatedAt": "2026-11-11T01:50:36.018Z",
+      "updatedBy": "User 524",
+      "pieceDetails": {
+        "date": "2026-11-11",
+        "peice": 1200,
+        "size": "M, L, XL",
+        "fabric": "Cotton Twill 240 GSM",
+        "master": "Master Aslam"
+      },
+      "embroidery": {
+        "date": "2026-11-11",
+        "peice": 1200,
+        "name": "Raju Embroidery",
+        "paymentDone": false,
+        "rate": 4.5
+      },
+      "fabrication": {
+        "date": "2026-11-11",
+        "peice": 1200,
+        "rate": 18,
+        "name": "Shabbir Tailor",
+        "paymentDone": false
+      },
+      "tanki": {
+        "date": "2026-11-11",
+        "peice": 1199,
+        "name": "Salim Tanki Wala",
+        "paymentDone": false,
+        "rate": 1.5
+      },
+      "washing": {
+        "date": "2026-11-11",
+        "peice": 1195,
+        "rate": 6,
+        "name": "Star Washing Plant",
+        "washingType": "Soft Enzyme Wash",
+        "paymentDone": false
+      },
+      "packing": {
+        "paymentDone": false,
+        "lines": [
+          {
+            "id": "p1",
+            "date": "2026-11-11",
+            "peice": 500,
+            "rate": 3,
+            "ripit": "Box Pack",
+            "name": "Munna Pack"
+          },
+          {
+            "id": "p2",
+            "date": "2026-11-11",
+            "peice": 450,
+            "rate": 3,
+            "ripit": "Poly Bag",
+            "name": "Munna Pack"
+          },
+          {
+            "id": "p3",
+            "date": "",
+            "peice": "",
+            "rate": "",
+            "ripit": "",
+            "name": ""
+          },
+          {
+            "id": "p4",
+            "date": "",
+            "peice": "",
+            "rate": "",
+            "ripit": "",
+            "name": ""
+          }
+        ]
+      },
+      "damage": {
+        "date": "2026-11-11",
+        "peice": 1200,
+        "name": "Super Laser Tech",
+        "paymentDone": true
+      },
+      "print": {
+        "date": "2026-11-11",
+        "peice": 1200,
+        "name": "Om Screen Print",
+        "paymentDone": true
+      }
+    },
+    {
+      "id": "lot_102",
+      "lotNo": "002",
+      "createdAt": "2026-11-11T01:41:38.829Z",
+      "updatedAt": "2026-11-11T01:48:56.431Z",
+      "updatedBy": "User 524",
+      "pieceDetails": {
+        "date": "2026-11-11",
+        "peice": 850,
+        "size": "S, M, L",
+        "fabric": "Rayon Slub",
+        "master": "Master Dinesh"
+      },
+      "embroidery": {
+        "date": "2026-11-11",
+        "peice": 850,
+        "rate": 6,
+        "name": "Kalam Designer",
+        "paymentDone": false
+      },
+      "fabrication": {
+        "date": "",
+        "peice": "",
+        "rate": "",
+        "name": "",
+        "paymentDone": false
+      },
+      "tanki": {
+        "date": "",
+        "peice": "",
+        "rate": "",
+        "name": "",
+        "paymentDone": false
+      },
+      "washing": {
+        "date": "",
+        "peice": "",
+        "rate": "",
+        "name": "",
+        "washingType": "",
+        "paymentDone": false
+      },
+      "packing": {
+        "paymentDone": false,
+        "lines": [
+          {
+            "id": "p1",
+            "date": "",
+            "peice": "",
+            "rate": "",
+            "ripit": "",
+            "name": ""
+          },
+          {
+            "id": "p2",
+            "date": "",
+            "peice": "",
+            "rate": "",
+            "ripit": "",
+            "name": ""
+          },
+          {
+            "id": "p3",
+            "date": "",
+            "peice": "",
+            "rate": "",
+            "ripit": "",
+            "name": ""
+          },
+          {
+            "id": "p4",
+            "date": "",
+            "peice": "",
+            "rate": "",
+            "ripit": "",
+            "name": ""
+          }
+        ]
+      },
+      "damage": {
+        "date": "",
+        "peice": "",
+        "name": "",
+        "paymentDone": false
+      },
+      "print": {
+        "date": "",
+        "peice": "",
+        "name": "",
+        "paymentDone": false
+      }
+    },
+    {
+      "id": "lot_1794361812022_y5qdu",
+      "lotNo": "003",
+      "createdAt": "2026-11-11T01:50:12.022Z",
+      "updatedAt": "2026-11-11T01:50:12.022Z",
+      "updatedBy": "User 524",
+      "pieceDetails": {
+        "date": "2026-11-11",
+        "peice": "",
+        "size": "",
+        "fabric": "",
+        "master": ""
+      },
+      "embroidery": {
+        "date": "2026-11-11",
+        "peice": "",
+        "rate": "",
+        "name": "",
+        "paymentDone": false
+      },
+      "fabrication": {
+        "date": "2026-11-11",
+        "peice": "",
+        "rate": "",
+        "name": "",
+        "paymentDone": false
+      },
+      "tanki": {
+        "date": "2026-11-11",
+        "peice": "",
+        "rate": "",
+        "name": "",
+        "paymentDone": false
+      },
+      "washing": {
+        "date": "2026-11-11",
+        "peice": "",
+        "rate": "",
+        "name": "",
+        "washingType": "",
+        "paymentDone": false
+      },
+      "packing": {
+        "paymentDone": false,
+        "lines": [
+          {
+            "id": "p1",
+            "date": "2026-11-11",
+            "peice": "",
+            "rate": "",
+            "ripit": "",
+            "name": ""
+          },
+          {
+            "id": "p2",
+            "date": "2026-11-11",
+            "peice": "",
+            "rate": "",
+            "ripit": "",
+            "name": ""
+          },
+          {
+            "id": "p3",
+            "date": "2026-11-11",
+            "peice": "",
+            "rate": "",
+            "ripit": "",
+            "name": ""
+          },
+          {
+            "id": "p4",
+            "date": "2026-11-11",
+            "peice": "",
+            "rate": "",
+            "ripit": "",
+            "name": ""
+          }
+        ]
+      },
+      "damage": {
+        "date": "2026-11-11",
+        "peice": "",
+        "name": "",
+        "paymentDone": false
+      },
+      "print": {
+        "date": "2026-11-11",
+        "peice": "",
+        "name": "",
+        "paymentDone": false
+      }
+    }
+  ]
+}

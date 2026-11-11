@@ -1,0 +1,6 @@
+{
+  "name": "Textile Lot & Job-Work Tracker",
+  "description": "Multi-user real-time garment production ledger with automatic sync for lots, piece entries, embroidery, fabrication, tanki, washing, packing, jama, damage, and print departments.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
