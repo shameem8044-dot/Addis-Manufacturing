@@ -1,18 +1,1517 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Textile Lot &amp; Job-Work Tracker</title>
-    <meta name="description" content="Multi-user real-time garment production ledger with automatic sync for lots, piece entries, embroidery, fabrication, tanki, washing, packing, jama, damage, and print departments." />
-    <meta property="og:title" content="Textile Lot &amp; Job-Work Tracker" />
-    <meta property="og:description" content="Multi-user real-time garment production ledger with automatic sync for lots, piece entries, embroidery, fabrication, tanki, washing, packing, jama, damage, and print departments." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+```html
+<!DOCTYPE html>
+<html lang="hi" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lot Tracker - Production & Jobwork Management</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .cell-hover:hover { background-color: #f1f5f9; cursor: pointer; }
+    .payment-done-cell {
+      background-color: #dcfce7 !important;
+      border-color: #86efac !important;
+      color: #14532d !important;
+    }
+    .payment-done-cell:hover {
+      background-color: #bbf7d0 !important;
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="h-full flex flex-col text-slate-800 bg-slate-100 antialiased">
+
+  <!-- Header -->
+  <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center shadow-inner">
+          <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
+            Lot Production & Jobwork Tracker
+            <span class="text-xs bg-indigo-800 text-indigo-200 px-2 py-0.5 rounded-full font-medium">Multi-User Sync</span>
+          </h1>
+          <p class="text-xs text-indigo-200">Garment Manufacturing • Real-time Production Register</p>
+        </div>
+      </div>
+
+      <!-- Sync Status & User Role Bar -->
+      <div class="flex items-center gap-3 text-sm">
+        <!-- Live Sync Badge -->
+        <div id="syncStatusBadge" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-medium">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span id="syncStatusText">Auto Sync Active</span>
+        </div>
+
+        <!-- Active User Selector -->
+        <div class="flex items-center gap-1.5 bg-indigo-800/80 px-2.5 py-1 rounded-lg border border-indigo-700">
+          <i data-lucide="user" class="w-4 h-4 text-indigo-300"></i>
+          <span class="text-xs text-indigo-200 hidden sm:inline">User:</span>
+          <select id="currentUserSelect" class="bg-transparent text-white text-xs font-semibold focus:outline-none cursor-pointer">
+            <option value="Admin (Office)" class="text-slate-900">Admin (Office)</option>
+            <option value="Cutting Master" class="text-slate-900">Cutting Master</option>
+            <option value="Embroidery Sup." class="text-slate-900">Embroidery Supervisor</option>
+            <option value="Fabrication Sup." class="text-slate-900">Fabrication Supervisor</option>
+            <option value="Washing Manager" class="text-slate-900">Washing Manager</option>
+            <option value="Packing Incharge" class="text-slate-900">Packing Incharge</option>
+          </select>
+        </div>
+
+        <!-- Cloud Sync Config Button -->
+        <button id="openCloudSyncBtn" title="Cloud / Multi-Device Sync Settings" class="p-1.5 bg-indigo-800 hover:bg-indigo-700 rounded-lg text-indigo-200 hover:text-white transition">
+          <i data-lucide="cloud" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Help / Quick Info Button -->
+        <button id="openHelpBtn" title="App Guidance" class="p-1.5 bg-indigo-800 hover:bg-indigo-700 rounded-lg text-indigo-200 hover:text-white transition">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI / Stats Summary Bar -->
+  <section class="bg-white border-b border-slate-200 shadow-sm py-2 px-4 sm:px-6">
+    <div class="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4 text-center">
+      <div class="bg-slate-50 border border-slate-200 p-2 rounded-lg">
+        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Lots</p>
+        <p id="kpiTotalLots" class="text-lg font-bold text-slate-800">0</p>
+      </div>
+      <div class="bg-blue-50 border border-blue-200 p-2 rounded-lg">
+        <p class="text-[11px] font-semibold text-blue-600 uppercase tracking-wider">Cutting Pieces</p>
+        <p id="kpiCuttingPcs" class="text-lg font-bold text-blue-800">0</p>
+      </div>
+      <div class="bg-purple-50 border border-purple-200 p-2 rounded-lg">
+        <p class="text-[11px] font-semibold text-purple-600 uppercase tracking-wider">Total Packing (Jama)</p>
+        <p id="kpiJamaPcs" class="text-lg font-bold text-purple-800">0</p>
+      </div>
+      <div class="bg-rose-50 border border-rose-200 p-2 rounded-lg">
+        <p class="text-[11px] font-semibold text-rose-600 uppercase tracking-wider">Total Damage</p>
+        <p id="kpiDamagePcs" class="text-lg font-bold text-rose-800">0</p>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 p-2 rounded-lg">
+        <p class="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">In Process (Pending)</p>
+        <p id="kpiPendingPcs" class="text-lg font-bold text-amber-800">0</p>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-200 p-2 rounded-lg">
+        <p class="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider">Payments Done</p>
+        <p id="kpiPaymentsDone" class="text-lg font-bold text-emerald-800">0</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Action Toolbar -->
+  <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-4 pb-2 flex flex-wrap items-center justify-between gap-3">
+    <!-- Left: Add Row & Controls -->
+    <div class="flex items-center flex-wrap gap-2">
+      <button id="addRowBtn" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg shadow transition active:scale-95 text-sm">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+        Add Row (+1 Lot No)
+      </button>
+
+      <button id="exportCsvBtn" class="flex items-center gap-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-medium px-3 py-2 rounded-lg text-sm transition">
+        <i data-lucide="download" class="w-4 h-4 text-slate-500"></i>
+        Export
+      </button>
+
+      <button id="printTableBtn" class="flex items-center gap-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-medium px-3 py-2 rounded-lg text-sm transition">
+        <i data-lucide="printer" class="w-4 h-4 text-slate-500"></i>
+        Print
+      </button>
+    </div>
+
+    <!-- Right: Search & Filters -->
+    <div class="flex items-center gap-2 flex-grow max-w-md justify-end">
+      <div class="relative w-full">
+        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+        <input type="text" id="searchInput" placeholder="Search Lot No, Master, Fabric..." class="w-full pl-9 pr-3 py-1.5 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
+      </div>
+      <button id="clearSearchBtn" class="text-xs text-slate-500 hover:text-slate-800 px-2 py-1.5 hidden bg-slate-200 rounded">Clear</button>
+    </div>
+  </div>
+
+  <!-- Main Table Container -->
+  <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 pb-12 flex-grow flex flex-col">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-grow flex flex-col">
+      <!-- Responsive Scroll Container -->
+      <div class="overflow-x-auto flex-grow">
+        <table class="w-full text-left text-xs border-collapse min-w-[1200px]" id="lotTable">
+          <thead>
+            <tr class="bg-slate-800 text-white font-semibold uppercase tracking-wider text-[11px] divide-x divide-slate-700">
+              <th class="py-3 px-3 w-12 text-center">#</th>
+              <th class="py-3 px-3 w-28 text-center bg-indigo-950 font-bold text-amber-300">Lot no</th>
+              <th class="py-3 px-3 w-24 text-center cursor-pointer hover:bg-slate-700" title="Click to view/edit cutting piece">Peice</th>
+              <th class="py-3 px-3 w-20 text-center">Size</th>
+              <th class="py-3 px-3 w-28 text-center">Fabric</th>
+              <th class="py-3 px-3 w-28 text-center">Master</th>
+              <th class="py-3 px-3 w-32 text-center cursor-pointer hover:bg-slate-700" title="Click to open Embroidery box">Embroidery</th>
+              <th class="py-3 px-3 w-32 text-center cursor-pointer hover:bg-slate-700" title="Click to open Fabrication box">Fabrication</th>
+              <th class="py-3 px-3 w-32 text-center cursor-pointer hover:bg-slate-700" title="Click to open Tanki box">Tanki</th>
+              <th class="py-3 px-3 w-32 text-center cursor-pointer hover:bg-slate-700" title="Click to open Washing box">Washing</th>
+              <th class="py-3 px-3 w-36 text-center cursor-pointer hover:bg-slate-700" title="Click to open 4-line Packing box">Packing</th>
+              <th class="py-3 px-3 w-24 text-center bg-purple-900 font-bold text-purple-200" title="Auto Total from Packing">Jama</th>
+              <th class="py-3 px-3 w-28 text-center cursor-pointer hover:bg-slate-700" title="Click to open Damage box">DAMAGE</th>
+              <th class="py-3 px-3 w-28 text-center cursor-pointer hover:bg-slate-700" title="Click to open Print box">Print</th>
+              <th class="py-3 px-2 w-14 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="lotTableBody" class="divide-y divide-slate-200">
+            <!-- Dynamic rows will be rendered here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden py-16 text-center">
+        <i data-lucide="clipboard-list" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
+        <h3 class="text-base font-semibold text-slate-700">Koi Lot Data Nahi Hai</h3>
+        <p class="text-xs text-slate-500 mt-1">Upar 'Add Row' button par click karke naya lot shuru karein.</p>
+        <button id="addFirstRowBtn" class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700">
+          <i data-lucide="plus" class="w-4 h-4"></i> Pehla Lot Enter Karein
+        </button>
+      </div>
+
+      <!-- Table Footer Note -->
+      <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-3 h-3 rounded bg-emerald-100 border border-emerald-400"></span>
+          <span>Green Cell = Payment Done (Read-only)</span>
+          <span class="mx-2">•</span>
+          <span class="inline-block w-3 h-3 rounded bg-white border border-slate-300"></span>
+          <span>White Cell = Click to Enter / View Details</span>
+        </div>
+        <div id="lastSyncTime" class="text-slate-400 text-[11px]">Last synced: Just now</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: PEICE (CUTTING & MASTER DETAILS)                   -->
+  <!-- ======================================================== -->
+  <div id="modalPeice" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 transform transition-all">
+      <div class="bg-indigo-700 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="scissors" class="w-5 h-5 text-indigo-200"></i>
+          <div>
+            <h3 class="text-base font-bold">Cutting & Piece Entry</h3>
+            <p class="text-xs text-indigo-200">Lot No: <span id="modalPeiceLotNo" class="font-bold text-white text-sm"></span></p>
+          </div>
+        </div>
+        <button class="modal-close-btn p-1 rounded-lg hover:bg-indigo-600 text-indigo-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="formPeice" class="p-6 space-y-4">
+        <input type="hidden" id="peiceRowId">
+        
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Date</label>
+          <input type="date" id="inputPeiceDate" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Peice (Pieces Count)</label>
+            <input type="number" id="inputPeiceCount" min="0" placeholder="e.g. 500" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-bold text-indigo-900">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Size</label>
+            <input type="text" id="inputPeiceSize" placeholder="e.g. 28-36, 30, L, XL" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Fabric</label>
+          <input type="text" id="inputPeiceFabric" placeholder="e.g. Denim 12oz, Cotton Twill, Knit" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Master Name</label>
+          <input type="text" id="inputPeiceMaster" placeholder="e.g. Master Aslam, Ramesh Master" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
+          <button type="button" class="modal-close-btn px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-100 transition">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow transition">Save & Update Row</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- GENERIC WORKFLOW MODAL                                    -->
+  <!-- Used for: Embroidery, Fabrication, Tanki, Washing, Damage, Print -->
+  <!-- ======================================================== -->
+  <div id="modalWorkflow" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 transform transition-all">
+      <div id="workflowModalHeader" class="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div id="workflowModalIcon" class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
+            <i data-lucide="tag" class="w-4 h-4 text-white"></i>
+          </div>
+          <div>
+            <h3 id="workflowModalTitle" class="text-base font-bold">Department Entry</h3>
+            <p class="text-xs text-slate-300">Lot No: <span id="workflowModalLotNo" class="font-bold text-white text-sm"></span></p>
+          </div>
+        </div>
+        <button class="modal-close-btn p-1 rounded-lg hover:bg-slate-700 text-slate-300">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Payment Status Alert Banner in Modal -->
+      <div id="workflowPaymentBanner" class="hidden px-6 py-2 bg-emerald-100 border-b border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center justify-between">
+        <span class="flex items-center gap-1.5">
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+          Payment Done (Entry is Read-Only)
+        </span>
+        <button type="button" id="workflowUnlockBtn" class="text-[11px] text-emerald-700 underline hover:text-emerald-900">Unlock</button>
+      </div>
+
+      <form id="formWorkflow" class="p-6 space-y-3.5">
+        <input type="hidden" id="workflowRowId">
+        <input type="hidden" id="workflowDeptKey">
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Date</label>
+          <input type="date" id="inputWorkflowDate" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Peice (Qty)</label>
+            <input type="number" id="inputWorkflowPeice" min="0" placeholder="e.g. 500" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-semibold text-slate-900">
+          </div>
+          <div id="fieldWorkflowRateContainer">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Rate (₹ / pc)</label>
+            <input type="number" step="0.01" id="inputWorkflowRate" min="0" placeholder="e.g. 12.50" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-semibold text-slate-900">
+          </div>
+        </div>
+
+        <!-- Optional Washing Special Field -->
+        <div id="fieldWorkflowWashingContainer" class="hidden">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Washing Type / Details</label>
+          <input type="text" id="inputWorkflowWashing" placeholder="e.g. Acid Wash, Enzyme, Stone, Bleach" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Name (Karigar / Contractor / Vendor)</label>
+          <input type="text" id="inputWorkflowName" placeholder="e.g. Salim Bhai / Royal Jobwork" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
+          <p class="text-[11px] text-slate-400 mt-1">Yeh naam main table ke cell me dikhaya jayega.</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <!-- Payment Done Button -->
+          <button type="button" id="workflowPaymentDoneBtn" class="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition active:scale-95">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            Payment Done
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button type="button" class="modal-close-btn px-3 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-100 transition">Cancel</button>
+            <button type="submit" id="workflowSaveBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow transition">Save Details</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: PACKING (4 LINES MULTI-ENTRY)                      -->
+  <!-- ======================================================== -->
+  <div id="modalPacking" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border border-slate-200 transform transition-all">
+      <div class="bg-amber-700 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="package-check" class="w-5 h-5 text-amber-200"></i>
+          <div>
+            <h3 class="text-base font-bold">Packing Entry (Multiple Batches - 4 Lines)</h3>
+            <p class="text-xs text-amber-200">Lot No: <span id="modalPackingLotNo" class="font-bold text-white text-sm"></span></p>
+          </div>
+        </div>
+        <button class="modal-close-btn p-1 rounded-lg hover:bg-amber-600 text-amber-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Payment Done Banner -->
+      <div id="packingPaymentBanner" class="hidden px-6 py-2 bg-emerald-100 border-b border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center justify-between">
+        <span class="flex items-center gap-1.5">
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+          Packing Payment Done (Read-Only)
+        </span>
+        <button type="button" id="packingUnlockBtn" class="text-[11px] text-emerald-700 underline hover:text-emerald-900">Unlock</button>
+      </div>
+
+      <form id="formPacking" class="p-6 space-y-4">
+        <input type="hidden" id="packingRowId">
+
+        <p class="text-xs text-slate-500">
+          Packing kai parts me hoti hai. Yahan 4 lines di gayi hain. In sabka Total Peice apne aap <span class="font-bold text-purple-700">Jama</span> wale cell me show hoga.
+        </p>
+
+        <!-- 4 lines table/inputs -->
+        <div class="space-y-3" id="packingLinesContainer">
+          <!-- Generated via JS for 4 lines -->
+        </div>
+
+        <!-- Total pieces summary in modal -->
+        <div class="p-3 bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-between text-xs">
+          <span class="font-semibold text-purple-900">Total Packing Pieces (Jama Qty):</span>
+          <span id="modalPackingTotalPieces" class="text-base font-extrabold text-purple-800">0 pcs</span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <button type="button" id="packingPaymentDoneBtn" class="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition active:scale-95">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            Payment Done
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button type="button" class="modal-close-btn px-3 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-100 transition">Cancel</button>
+            <button type="submit" id="packingSaveBtn" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow transition">Save Packing</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: CLOUD SYNC & MULTI-USER CONFIG                     -->
+  <!-- ======================================================== -->
+  <div id="modalCloudSync" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-indigo-900 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="cloud" class="w-5 h-5 text-indigo-300"></i>
+          <div>
+            <h3 class="text-base font-bold">Multi-User Sync Settings</h3>
+            <p class="text-xs text-indigo-200">Tabs & Devices Synchronization</p>
+          </div>
+        </div>
+        <button class="modal-close-btn p-1 rounded-lg hover:bg-indigo-800 text-indigo-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900 flex items-start gap-2">
+          <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mt-0.5 shrink-0"></i>
+          <div>
+            <p class="font-bold">Real-time Cross-Tab Sync is Active</p>
+            <p class="text-[11px] text-emerald-700 mt-0.5">Aap is app ko jitne bhi tabs ya windows me kholenge, un sabhi me data bina page refresh kiye turant apne aap sync ho jayega.</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Factory / Organization Room ID</label>
+          <input type="text" id="syncRoomId" value="addis-jeans-main" class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <p class="text-[11px] text-slate-400 mt-1">Sabhi users/devices ka same Room ID hona chahiye.</p>
+        </div>
+
+        <!-- Manual Backup & Restore -->
+        <div class="border-t border-slate-200 pt-3 space-y-2">
+          <p class="font-bold text-slate-700">Backup & Share Data:</p>
+          <div class="flex gap-2">
+            <button id="downloadBackupBtn" class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-700 font-semibold flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> Download JSON
+            </button>
+            <label class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-700 font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition text-center">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i> Restore JSON
+              <input type="file" id="restoreFileInput" accept=".json" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex justify-end">
+          <button type="button" class="modal-close-btn px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: HELP / GUIDE                                       -->
+  <!-- ======================================================== -->
+  <div id="modalHelp" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+      <div class="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
+        <h3 class="text-base font-bold flex items-center gap-2">
+          <i data-lucide="book-open" class="w-5 h-5 text-indigo-300"></i>
+          App Guide & Rules
+        </h3>
+        <button class="modal-close-btn p-1 rounded-lg hover:bg-slate-700 text-slate-300">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-6 space-y-3 text-xs text-slate-600 max-h-[75vh] overflow-y-auto">
+        <div class="p-2.5 bg-indigo-50 border border-indigo-200 rounded-lg text-indigo-900">
+          <strong>1. Lot No & Add Row:</strong> Pehla lot no aap manually enter karenge. Niche "Add Row" dabane par pichli row ke lot no me apne aap +1 ho jayega.
+        </div>
+        <div class="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-900">
+          <strong>2. Peice Cell:</strong> Click karne par Date, Peice, Size, Fabric aur Master Name ka popup khulta hai. Save karne par ye charo values row me update ho jati hain.
+        </div>
+        <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-900">
+          <strong>3. Jobwork Cells (Embroidery, Fabrication, Tanki, Washing, Damage, Print):</strong> Cell par click karne par popup khulta hai. Name enter karne par cell me Name aur uske niche Peice dikhega.
+        </div>
+        <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900">
+          <strong>4. Payment Done Button:</strong> Har popup me "Payment Done" button hai. Click karne par us cell ka background Green ho jayega aur entries read-only ho jayengi.
+        </div>
+        <div class="p-2.5 bg-purple-50 border border-purple-200 rounded-lg text-purple-900">
+          <strong>5. Packing & Jama:</strong> Packing box me 4 lines hain (kyunki packing parts me hoti hai). Sabhi lines ke pieces ka total apne aap <strong>Jama</strong> cell me show hoga.
+        </div>
+        <div class="p-2.5 bg-slate-100 border border-slate-300 rounded-lg text-slate-800">
+          <strong>6. Multi-User Real-time Sync:</strong> Data automatically local storage aur active network broadcast me sync hota hai. Multiple log sath me kaam kar sakte hain.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- JavaScript Application Logic -->
+  <script>
+    // State Model
+    const STORAGE_KEY = 'addis_lot_tracker_data_v1';
+    const SYNC_CHANNEL_NAME = 'addis_lot_tracker_broadcast';
+    let broadcastChannel = null;
+
+    // Default Initial State
+    let state = {
+      currentUser: 'Admin (Office)',
+      roomId: 'addis-jeans-main',
+      rows: []
+    };
+
+    // Helper: Generate Unique ID
+    function uid() {
+      return 'row_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    }
+
+    // Default Empty Row Factory
+    function createNewLotRow(lotNumber = '') {
+      return {
+        id: uid(),
+        lotNo: lotNumber,
+        peiceData: {
+          date: new Date().toISOString().split('T')[0],
+          peice: '',
+          size: '',
+          fabric: '',
+          master: ''
+        },
+        embroidery: { date: '', peice: '', rate: '', name: '', paymentDone: false },
+        fabrication: { date: '', peice: '', rate: '', name: '', paymentDone: false },
+        tanki: { date: '', peice: '', rate: '', name: '', paymentDone: false },
+        washing: { date: '', peice: '', washing: '', rate: '', name: '', paymentDone: false },
+        packing: {
+          lines: [
+            { date: '', peice: '', rate: '', ripit: '', name: '' },
+            { date: '', peice: '', rate: '', ripit: '', name: '' },
+            { date: '', peice: '', rate: '', ripit: '', name: '' },
+            { date: '', peice: '', rate: '', ripit: '', name: '' }
+          ],
+          paymentDone: false
+        },
+        damage: { date: '', peice: '', name: '', paymentDone: false },
+        print: { date: '', peice: '', name: '', paymentDone: false },
+        createdAt: new Date().toISOString(),
+        lastEditedBy: state.currentUser || 'Admin'
+      };
+    }
+
+    // Initialize BroadcastChannel for cross-tab multi-user sync
+    function initSync() {
+      try {
+        if ('BroadcastChannel' in window) {
+          broadcastChannel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+          broadcastChannel.onmessage = (event) => {
+            if (event.data && event.data.type === 'SYNC_STATE') {
+              state.rows = event.data.rows || [];
+              renderTable();
+              updateKpis();
+              showToast('Data auto-synced with another user', 'info');
+              updateSyncTimestamp();
+            }
+          };
+        }
+      } catch (err) {
+        console.warn('BroadcastChannel not supported or restricted:', err);
+      }
+
+      // Also listen to window storage events
+      window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_KEY && e.newValue) {
+          try {
+            const parsed = JSON.parse(e.newValue);
+            if (parsed && Array.isArray(parsed.rows)) {
+              state.rows = parsed.rows;
+              renderTable();
+              updateKpis();
+              updateSyncTimestamp();
+            }
+          } catch (err) {
+            console.error('Storage sync error:', err);
+          }
+        }
+      });
+    }
+
+    // Load Data from localStorage
+    function loadState() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.rows && parsed.rows.length > 0) {
+            state.rows = parsed.rows;
+          } else {
+            seedInitialDemoRows();
+          }
+        } else {
+          seedInitialDemoRows();
+        }
+      } catch (err) {
+        console.warn('localStorage read error:', err);
+        seedInitialDemoRows();
+      }
+    }
+
+    // Seed realistic sample data if empty
+    function seedInitialDemoRows() {
+      const row1 = createNewLotRow('101');
+      row1.peiceData = {
+        date: '2026-11-10',
+        peice: '600',
+        size: '28-36',
+        fabric: 'Denim Indigo 11.5oz',
+        master: 'Aslam Master'
+      };
+      row1.embroidery = { date: '2026-11-10', peice: '600', rate: '8.50', name: 'Salim Embroidery', paymentDone: true };
+      row1.fabrication = { date: '2026-11-11', peice: '600', rate: '35', name: 'Munna Karigar', paymentDone: false };
+      row1.tanki = { date: '2026-11-11', peice: '600', rate: '4', name: 'Nasir Tanki', paymentDone: false };
+      row1.washing = { date: '', peice: '', washing: 'Enzyme Stone Wash', rate: '22', name: 'Deluxe Washers', paymentDone: false };
+      row1.packing.lines[0] = { date: '2026-11-11', peice: '350', rate: '6', ripit: 'Batch 1 OK', name: 'Guddu Packing' };
+      row1.packing.lines[1] = { date: '2026-11-11', peice: '240', rate: '6', ripit: 'Batch 2 OK', name: 'Guddu Packing' };
+      row1.damage = { date: '2026-11-11', peice: '10', name: 'Munna' };
+      row1.print = { date: '2026-11-10', peice: '600', name: 'Star Printing', paymentDone: true };
+
+      const row2 = createNewLotRow('102');
+      row2.peiceData = {
+        date: '2026-11-11',
+        peice: '450',
+        size: '30-34',
+        fabric: 'Cotton Twill Black',
+        master: 'Ramesh Master'
+      };
+      row2.embroidery = { date: '2026-11-11', peice: '450', rate: '12', name: 'Modern Arts', paymentDone: false };
+
+      state.rows = [row1, row2];
+      saveState(false);
+    }
+
+    // Save Data to localStorage and broadcast to other tabs
+    function saveState(broadcast = true) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          rows: state.rows,
+          lastUpdated: new Date().toISOString(),
+          lastUser: state.currentUser
+        }));
+      } catch (err) {
+        console.error('Error saving to localStorage:', err);
+      }
+
+      if (broadcast && broadcastChannel) {
+        try {
+          broadcastChannel.postMessage({
+            type: 'SYNC_STATE',
+            rows: state.rows,
+            user: state.currentUser
+          });
+        } catch (err) {
+          console.warn('Broadcast failed:', err);
+        }
+      }
+
+      updateKpis();
+      updateSyncTimestamp();
+    }
+
+    function updateSyncTimestamp() {
+      const el = document.getElementById('lastSyncTime');
+      if (el) {
+        const now = new Date();
+        el.textContent = 'Last synced: ' + now.toLocaleTimeString();
+      }
+    }
+
+    // Calculate Total Pieces for Packing Lines (Jama)
+    function getPackingTotal(packing) {
+      if (!packing || !packing.lines) return 0;
+      return packing.lines.reduce((sum, line) => {
+        const val = parseInt(line.peice, 10);
+        return sum + (isNaN(val) ? 0 : val);
+      }, 0);
+    }
+
+    // Get Primary Name for Packing cell
+    function getPackingDisplayName(packing) {
+      if (!packing || !packing.lines) return '';
+      for (const line of packing.lines) {
+        if (line.name && line.name.trim()) return line.name.trim();
+      }
+      return '';
+    }
+
+    // Auto Increment Lot Number from Previous Row
+    function getNextLotNumber() {
+      if (!state.rows || state.rows.length === 0) return '101';
+      const lastRow = state.rows[state.rows.length - 1];
+      const prevLot = (lastRow.lotNo || '').trim();
+      if (!prevLot) return '101';
+
+      // Match trailing integer digits
+      const match = prevLot.match(/^(.*?)(\d+)$/);
+      if (match) {
+        const prefix = match[1];
+        const numStr = match[2];
+        const nextNum = parseInt(numStr, 10) + 1;
+        // preserve zero padding if needed
+        const padded = nextNum.toString().padStart(numStr.length, '0');
+        return prefix + padded;
+      }
+      // If purely alphabetic or custom, append 1
+      return prevLot + '-1';
+    }
+
+    // Render Table Rows
+    function renderTable() {
+      const tbody = document.getElementById('lotTableBody');
+      const emptyState = document.getElementById('emptyState');
+      const searchVal = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      let filteredRows = state.rows;
+      if (searchVal) {
+        filteredRows = state.rows.filter(row => {
+          const lotStr = (row.lotNo || '').toLowerCase();
+          const masterStr = (row.peiceData.master || '').toLowerCase();
+          const fabricStr = (row.peiceData.fabric || '').toLowerCase();
+          const embStr = (row.embroidery.name || '').toLowerCase();
+          return lotStr.includes(searchVal) || masterStr.includes(searchVal) || fabricStr.includes(searchVal) || embStr.includes(searchVal);
+        });
+      }
+
+      if (filteredRows.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      filteredRows.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-200 divide-x divide-slate-200';
+        tr.dataset.id = row.id;
+
+        const pData = row.peiceData || {};
+        const emb = row.embroidery || {};
+        const fab = row.fabrication || {};
+        const tan = row.tanki || {};
+        const wash = row.washing || {};
+        const pack = row.packing || { lines: [] };
+        const dam = row.damage || {};
+        const prn = row.print || {};
+
+        const jamaPcs = getPackingTotal(pack);
+        const packingName = getPackingDisplayName(pack);
+
+        // Column Cells:
+        tr.innerHTML = `
+          <!-- # Index -->
+          <td class="py-2.5 px-3 text-center text-slate-400 font-mono text-[11px]">${index + 1}</td>
+
+          <!-- Lot No (Bold, Click/Edit) -->
+          <td class="py-2 px-3 text-center bg-slate-50">
+            <input type="text" class="lot-no-input w-full text-center font-extrabold text-indigo-900 text-sm bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-600 focus:bg-white focus:outline-none rounded px-1 py-0.5 uppercase tracking-wide transition" value="${escapeHtml(row.lotNo || '')}" placeholder="Lot #" data-id="${row.id}">
+          </td>
+
+          <!-- Peice (Click opens Peice Modal) -->
+          <td class="py-2 px-3 text-center cell-hover" data-action="open-peice" data-id="${row.id}" title="Click to edit cutting pieces & master">
+            <div class="font-bold text-slate-800 text-sm">${pData.peice ? escapeHtml(pData.peice) + ' <span class="text-[10px] font-normal text-slate-500">pcs</span>' : '<span class="text-slate-400 italic font-normal">+ Add</span>'}</div>
+            ${pData.date ? `<div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(pData.date)}</div>` : ''}
+          </td>
+
+          <!-- Size -->
+          <td class="py-2 px-3 text-center cell-hover" data-action="open-peice" data-id="${row.id}">
+            <span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-medium text-[11px]">${escapeHtml(pData.size || '-')}</span>
+          </td>
+
+          <!-- Fabric -->
+          <td class="py-2 px-3 text-center cell-hover truncate max-w-[120px]" data-action="open-peice" data-id="${row.id}" title="${escapeHtml(pData.fabric || '')}">
+            <span class="text-slate-700 text-xs">${escapeHtml(pData.fabric || '-')}</span>
+          </td>
+
+          <!-- Master -->
+          <td class="py-2 px-3 text-center cell-hover font-medium text-slate-800" data-action="open-peice" data-id="${row.id}">
+            ${pData.master ? `<span class="text-indigo-800 font-semibold">${escapeHtml(pData.master)}</span>` : '<span class="text-slate-400 text-xs">-</span>'}
+          </td>
+
+          <!-- Embroidery -->
+          <td class="py-2 px-2 text-center cell-hover ${emb.paymentDone ? 'payment-done-cell' : ''}" data-action="open-dept" data-dept="embroidery" data-id="${row.id}" title="Click Embroidery details">
+            ${renderDeptCell(emb)}
+          </td>
+
+          <!-- Fabrication -->
+          <td class="py-2 px-2 text-center cell-hover ${fab.paymentDone ? 'payment-done-cell' : ''}" data-action="open-dept" data-dept="fabrication" data-id="${row.id}" title="Click Fabrication details">
+            ${renderDeptCell(fab)}
+          </td>
+
+          <!-- Tanki -->
+          <td class="py-2 px-2 text-center cell-hover ${tan.paymentDone ? 'payment-done-cell' : ''}" data-action="open-dept" data-dept="tanki" data-id="${row.id}" title="Click Tanki details">
+            ${renderDeptCell(tan)}
+          </td>
+
+          <!-- Washing -->
+          <td class="py-2 px-2 text-center cell-hover ${wash.paymentDone ? 'payment-done-cell' : ''}" data-action="open-dept" data-dept="washing" data-id="${row.id}" title="Click Washing details">
+            ${renderDeptCell(wash)}
+          </td>
+
+          <!-- Packing -->
+          <td class="py-2 px-2 text-center cell-hover ${pack.paymentDone ? 'payment-done-cell' : ''}" data-action="open-packing" data-id="${row.id}" title="Click Packing details (4 Lines)">
+            <div>
+              <div class="font-bold text-xs truncate max-w-[130px] mx-auto text-slate-800">${escapeHtml(packingName || '+ Enter')}</div>
+              <div class="text-[11px] text-amber-700 font-semibold mt-0.5">${jamaPcs > 0 ? jamaPcs + ' pcs' : '<span class="text-slate-400 font-normal">0 pcs</span>'}</div>
+            </div>
+            ${pack.paymentDone ? '<span class="inline-flex items-center gap-0.5 text-[9px] bg-emerald-200 text-emerald-800 px-1 py-0.2 rounded font-bold mt-0.5">Paid ✓</span>' : ''}
+          </td>
+
+          <!-- Jama (Auto Total from Packing) -->
+          <td class="py-2 px-3 text-center bg-purple-50/50">
+            <div class="text-sm font-extrabold text-purple-900">${jamaPcs}</div>
+            <div class="text-[10px] text-purple-600 font-medium">Total Pcs</div>
+          </td>
+
+          <!-- DAMAGE -->
+          <td class="py-2 px-2 text-center cell-hover ${dam.paymentDone ? 'payment-done-cell' : ''}" data-action="open-dept" data-dept="damage" data-id="${row.id}" title="Click Damage details">
+            ${renderDeptCell(dam)}
+          </td>
+
+          <!-- Print -->
+          <td class="py-2 px-2 text-center cell-hover ${prn.paymentDone ? 'payment-done-cell' : ''}" data-action="open-dept" data-dept="print" data-id="${row.id}" title="Click Print details">
+            ${renderDeptCell(prn)}
+          </td>
+
+          <!-- Row Action Delete -->
+          <td class="py-2 px-2 text-center">
+            <button class="delete-row-btn p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition" data-id="${row.id}" title="Delete Lot">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      // Refresh Lucide Icons
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+
+      attachTableListeners();
+    }
+
+    // Helper: Render individual Dept Cell content
+    function renderDeptCell(deptObj) {
+      if (!deptObj || (!deptObj.name && !deptObj.peice)) {
+        return `<div class="text-slate-300 text-xs italic font-normal">+ Entry</div>`;
+      }
+      return `
+        <div class="leading-tight">
+          <div class="font-bold text-xs truncate max-w-[120px] mx-auto text-slate-900">${escapeHtml(deptObj.name || '-')}</div>
+          <div class="text-[11px] text-slate-600 font-semibold mt-0.5">${deptObj.peice ? escapeHtml(deptObj.peice) + ' pcs' : '<span class="text-slate-400">-</span>'}</div>
+          ${deptObj.paymentDone ? '<span class="inline-flex items-center gap-0.5 text-[9px] bg-emerald-200 text-emerald-800 px-1 py-0.2 rounded font-bold mt-0.5">Paid ✓</span>' : ''}
+        </div>
+      `;
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Attach Table Interaction Event Listeners
+    function attachTableListeners() {
+      // Lot number manual inline edit
+      document.querySelectorAll('.lot-no-input').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const rowId = e.target.dataset.id;
+          const row = state.rows.find(r => r.id === rowId);
+          if (row) {
+            row.lotNo = e.target.value.trim();
+            row.lastEditedBy = state.currentUser;
+            saveState();
+            showToast(`Lot No updated: ${row.lotNo}`);
+          }
+        });
+      });
+
+      // Cell clicks
+      document.querySelectorAll('[data-action]').forEach(cell => {
+        cell.addEventListener('click', (e) => {
+          // If clicked input directly, ignore
+          if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
+
+          const action = cell.dataset.action;
+          const rowId = cell.dataset.id;
+          const deptKey = cell.dataset.dept;
+
+          if (action === 'open-peice') {
+            openPeiceModal(rowId);
+          } else if (action === 'open-dept') {
+            openWorkflowModal(rowId, deptKey);
+          } else if (action === 'open-packing') {
+            openPackingModal(rowId);
+          }
+        });
+      });
+
+      // Delete Row
+      document.querySelectorAll('.delete-row-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const rowId = btn.dataset.id;
+          const target = state.rows.find(r => r.id === rowId);
+          const lotLabel = target ? target.lotNo : '';
+          
+          showConfirm(`Kya aap Lot "${lotLabel}" ko delete karna chahte hain?`, () => {
+            state.rows = state.rows.filter(r => r.id !== rowId);
+            saveState();
+            renderTable();
+            showToast(`Lot ${lotLabel} delete ho gaya`, 'error');
+          });
+        });
+      });
+    }
+
+    // ========================================================
+    // MODAL 1: PEICE / CUTTING DETAILS
+    // ========================================================
+    function openPeiceModal(rowId) {
+      const row = state.rows.find(r => r.id === rowId);
+      if (!row) return;
+
+      document.getElementById('peiceRowId').value = rowId;
+      document.getElementById('modalPeiceLotNo').textContent = row.lotNo || 'Pending';
+
+      const p = row.peiceData || {};
+      document.getElementById('inputPeiceDate').value = p.date || new Date().toISOString().split('T')[0];
+      document.getElementById('inputPeiceCount').value = p.peice || '';
+      document.getElementById('inputPeiceSize').value = p.size || '';
+      document.getElementById('inputPeiceFabric').value = p.fabric || '';
+      document.getElementById('inputPeiceMaster').value = p.master || '';
+
+      document.getElementById('modalPeice').classList.remove('hidden');
+    }
+
+    document.getElementById('formPeice').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const rowId = document.getElementById('peiceRowId').value;
+      const row = state.rows.find(r => r.id === rowId);
+      if (!row) return;
+
+      row.peiceData = {
+        date: document.getElementById('inputPeiceDate').value,
+        peice: document.getElementById('inputPeiceCount').value.trim(),
+        size: document.getElementById('inputPeiceSize').value.trim(),
+        fabric: document.getElementById('inputPeiceFabric').value.trim(),
+        master: document.getElementById('inputPeiceMaster').value.trim()
+      };
+      row.lastEditedBy = state.currentUser;
+
+      saveState();
+      renderTable();
+      closeAllModals();
+      showToast(`Lot ${row.lotNo} Cutting & Master details saved!`, 'success');
+    });
+
+    // ========================================================
+    // MODAL 2: GENERIC WORKFLOW (Embroidery, Fabrication, Tanki, Washing, Damage, Print)
+    // ========================================================
+    const DEPT_CONFIGS = {
+      embroidery: { title: 'Embroidery Entry', icon: 'sparkles', hasRate: true, hasWashing: false, color: 'bg-indigo-800' },
+      fabrication: { title: 'Fabrication Entry', icon: 'scissors', hasRate: true, hasWashing: false, color: 'bg-blue-800' },
+      tanki: { title: 'Tanki Entry', icon: 'droplet', hasRate: true, hasWashing: false, color: 'bg-cyan-800' },
+      washing: { title: 'Washing Entry', icon: 'waves', hasRate: true, hasWashing: true, color: 'bg-teal-800' },
+      damage: { title: 'Damage Entry', icon: 'alert-triangle', hasRate: false, hasWashing: false, color: 'bg-rose-800' },
+      print: { title: 'Print Entry', icon: 'printer', hasRate: false, hasWashing: false, color: 'bg-violet-800' }
+    };
+
+    function openWorkflowModal(rowId, deptKey) {
+      const row = state.rows.find(r => r.id === rowId);
+      if (!row) return;
+
+      const config = DEPT_CONFIGS[deptKey] || { title: deptKey, hasRate: true, hasWashing: false, color: 'bg-slate-800' };
+      const deptData = row[deptKey] || {};
+
+      document.getElementById('workflowRowId').value = rowId;
+      document.getElementById('workflowDeptKey').value = deptKey;
+      document.getElementById('workflowModalLotNo').textContent = row.lotNo || '-';
+      document.getElementById('workflowModalTitle').textContent = config.title;
+
+      // Header styling
+      const header = document.getElementById('workflowModalHeader');
+      header.className = `${config.color} text-white px-6 py-4 flex items-center justify-between`;
+
+      // Fields configuration
+      const rateContainer = document.getElementById('fieldWorkflowRateContainer');
+      if (config.hasRate) {
+        rateContainer.classList.remove('hidden');
+      } else {
+        rateContainer.classList.add('hidden');
+      }
+
+      const washContainer = document.getElementById('fieldWorkflowWashingContainer');
+      if (config.hasWashing) {
+        washContainer.classList.remove('hidden');
+      } else {
+        washContainer.classList.add('hidden');
+      }
+
+      // Populate input values
+      document.getElementById('inputWorkflowDate').value = deptData.date || new Date().toISOString().split('T')[0];
+      document.getElementById('inputWorkflowPeice').value = deptData.peice || '';
+      document.getElementById('inputWorkflowRate').value = deptData.rate || '';
+      document.getElementById('inputWorkflowWashing').value = deptData.washing || '';
+      document.getElementById('inputWorkflowName').value = deptData.name || '';
+
+      // Payment Done state
+      const isPaid = !!deptData.paymentDone;
+      setWorkflowInputsReadOnly(isPaid);
+
+      document.getElementById('modalWorkflow').classList.remove('hidden');
+    }
+
+    function setWorkflowInputsReadOnly(isPaid) {
+      const banner = document.getElementById('workflowPaymentBanner');
+      const payBtn = document.getElementById('workflowPaymentDoneBtn');
+      const saveBtn = document.getElementById('workflowSaveBtn');
+      const inputs = [
+        document.getElementById('inputWorkflowDate'),
+        document.getElementById('inputWorkflowPeice'),
+        document.getElementById('inputWorkflowRate'),
+        document.getElementById('inputWorkflowWashing'),
+        document.getElementById('inputWorkflowName')
+      ];
+
+      if (isPaid) {
+        banner.classList.remove('hidden');
+        payBtn.classList.add('opacity-50', 'pointer-events-none');
+        saveBtn.classList.add('hidden');
+        inputs.forEach(inp => inp.setAttribute('readonly', 'true'));
+      } else {
+        banner.classList.add('hidden');
+        payBtn.classList.remove('opacity-50', 'pointer-events-none');
+        saveBtn.classList.remove('hidden');
+        inputs.forEach(inp => inp.removeAttribute('readonly'));
+      }
+    }
+
+    // Unlock workflow modal for editing if needed
+    document.getElementById('workflowUnlockBtn').addEventListener('click', () => {
+      setWorkflowInputsReadOnly(false);
+      showToast('Fields unlocked for editing', 'info');
+    });
+
+    // Save Generic Workflow Details
+    document.getElementById('formWorkflow').addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveWorkflowModalData(false);
+    });
+
+    // Payment Done Button Handler
+    document.getElementById('workflowPaymentDoneBtn').addEventListener('click', () => {
+      saveWorkflowModalData(true);
+    });
+
+    function saveWorkflowModalData(markPaymentDone = false) {
+      const rowId = document.getElementById('workflowRowId').value;
+      const deptKey = document.getElementById('workflowDeptKey').value;
+      const row = state.rows.find(r => r.id === rowId);
+      if (!row) return;
+
+      if (!row[deptKey]) row[deptKey] = {};
+
+      row[deptKey].date = document.getElementById('inputWorkflowDate').value;
+      row[deptKey].peice = document.getElementById('inputWorkflowPeice').value.trim();
+      row[deptKey].rate = document.getElementById('inputWorkflowRate').value.trim();
+      row[deptKey].washing = document.getElementById('inputWorkflowWashing').value.trim();
+      row[deptKey].name = document.getElementById('inputWorkflowName').value.trim();
+
+      if (markPaymentDone) {
+        row[deptKey].paymentDone = true;
+      }
+
+      row.lastEditedBy = state.currentUser;
+      saveState();
+      renderTable();
+      closeAllModals();
+
+      if (markPaymentDone) {
+        showToast(`Payment Done marked! Cell is now Green & Read-only.`, 'success');
+      } else {
+        showToast(`${DEPT_CONFIGS[deptKey]?.title || deptKey} updated!`, 'success');
+      }
+    }
+
+    // ========================================================
+    // MODAL 3: PACKING (4 LINES MULTI-ENTRY)
+    // ========================================================
+    function openPackingModal(rowId) {
+      const row = state.rows.find(r => r.id === rowId);
+      if (!row) return;
+
+      document.getElementById('packingRowId').value = rowId;
+      document.getElementById('modalPackingLotNo').textContent = row.lotNo || '-';
+
+      const packing = row.packing || { lines: [], paymentDone: false };
+      // Ensure exactly 4 lines
+      const lines = packing.lines || [];
+      while (lines.length < 4) {
+        lines.push({ date: '', peice: '', rate: '', ripit: '', name: '' });
+      }
+
+      const container = document.getElementById('packingLinesContainer');
+      container.innerHTML = '';
+
+      lines.slice(0, 4).forEach((line, i) => {
+        const lineBox = document.createElement('div');
+        lineBox.className = 'p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2';
+        lineBox.innerHTML = `
+          <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+            <span>Part ${i + 1} Entry</span>
+            <span class="text-[10px] text-slate-400 font-normal">Line #${i + 1}</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Date</label>
+              <input type="date" class="packing-date w-full px-2 py-1.5 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-amber-500" value="${escapeHtml(line.date || '')}">
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Peice (Qty)</label>
+              <input type="number" min="0" class="packing-peice w-full px-2 py-1.5 text-xs border border-slate-300 rounded font-bold text-slate-800 focus:ring-1 focus:ring-amber-500" placeholder="Pcs" value="${escapeHtml(line.peice || '')}">
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Rate (₹)</label>
+              <input type="number" step="0.01" class="packing-rate w-full px-2 py-1.5 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-amber-500" placeholder="Rate" value="${escapeHtml(line.rate || '')}">
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Ripit (Note)</label>
+              <input type="text" class="packing-ripit w-full px-2 py-1.5 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-amber-500" placeholder="Ripit / Remarks" value="${escapeHtml(line.ripit || '')}">
+            </div>
+            <div class="col-span-2 sm:col-span-1">
+              <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Name</label>
+              <input type="text" class="packing-name w-full px-2 py-1.5 text-xs border border-slate-300 rounded font-medium focus:ring-1 focus:ring-amber-500" placeholder="Packer Name" value="${escapeHtml(line.name || '')}">
+            </div>
+          </div>
+        `;
+        container.appendChild(lineBox);
+      });
+
+      // Recalculate total pieces in modal
+      updateModalPackingTotal();
+
+      // Listen for piece changes to update total live in modal
+      container.querySelectorAll('.packing-peice').forEach(inp => {
+        inp.addEventListener('input', updateModalPackingTotal);
+      });
+
+      // Check payment status
+      setPackingInputsReadOnly(!!packing.paymentDone);
+
+      document.getElementById('modalPacking').classList.remove('hidden');
+    }
+
+    function updateModalPackingTotal() {
+      let total = 0;
+      document.querySelectorAll('.packing-peice').forEach(inp => {
+        const val = parseInt(inp.value, 10);
+        if (!isNaN(val)) total += val;
+      });
+      document.getElementById('modalPackingTotalPieces').textContent = total + ' pcs';
+    }
+
+    function setPackingInputsReadOnly(isPaid) {
+      const banner = document.getElementById('packingPaymentBanner');
+      const payBtn = document.getElementById('packingPaymentDoneBtn');
+      const saveBtn = document.getElementById('packingSaveBtn');
+      const inputs = document.querySelectorAll('#packingLinesContainer input');
+
+      if (isPaid) {
+        banner.classList.remove('hidden');
+        payBtn.classList.add('opacity-50', 'pointer-events-none');
+        saveBtn.classList.add('hidden');
+        inputs.forEach(inp => inp.setAttribute('readonly', 'true'));
+      } else {
+        banner.classList.add('hidden');
+        payBtn.classList.remove('opacity-50', 'pointer-events-none');
+        saveBtn.classList.remove('hidden');
+        inputs.forEach(inp => inp.removeAttribute('readonly'));
+      }
+    }
+
+    // Unlock Packing modal
+    document.getElementById('packingUnlockBtn').addEventListener('click', () => {
+      setPackingInputsReadOnly(false);
+      showToast('Packing unlocked for editing', 'info');
+    });
+
+    document.getElementById('formPacking').addEventListener('submit', (e) => {
+      e.preventDefault();
+      savePackingModalData(false);
+    });
+
+    document.getElementById('packingPaymentDoneBtn').addEventListener('click', () => {
+      savePackingModalData(true);
+    });
+
+    function savePackingModalData(markPaymentDone = false) {
+      const rowId = document.getElementById('packingRowId').value;
+      const row = state.rows.find(r => r.id === rowId);
+      if (!row) return;
+
+      const container = document.getElementById('packingLinesContainer');
+      const dates = container.querySelectorAll('.packing-date');
+      const pieces = container.querySelectorAll('.packing-peice');
+      const rates = container.querySelectorAll('.packing-rate');
+      const ripits = container.querySelectorAll('.packing-ripit');
+      const names = container.querySelectorAll('.packing-name');
+
+      const lines = [];
+      for (let i = 0; i < 4; i++) {
+        lines.push({
+          date: dates[i] ? dates[i].value : '',
+          peice: pieces[i] ? pieces[i].value.trim() : '',
+          rate: rates[i] ? rates[i].value.trim() : '',
+          ripit: ripits[i] ? ripits[i].value.trim() : '',
+          name: names[i] ? names[i].value.trim() : ''
+        });
+      }
+
+      if (!row.packing) row.packing = {};
+      row.packing.lines = lines;
+
+      if (markPaymentDone) {
+        row.packing.paymentDone = true;
+      }
+
+      row.lastEditedBy = state.currentUser;
+      saveState();
+      renderTable();
+      closeAllModals();
+
+      const totalJama = getPackingTotal(row.packing);
+      if (markPaymentDone) {
+        showToast(`Packing Payment Done! Total ${totalJama} pcs synced to Jama.`, 'success');
+      } else {
+        showToast(`Packing saved: Total ${totalJama} pcs recorded in Jama!`, 'success');
+      }
+    }
+
+    // ========================================================
+    // ADD ROW LOGIC (Auto increment Lot No)
+    // ========================================================
+    function handleAddRow() {
+      const nextLot = getNextLotNumber();
+      const newRow = createNewLotRow(nextLot);
+      state.rows.push(newRow);
+      saveState();
+      renderTable();
+      showToast(`Nayi row jud gayi: Lot No. ${nextLot}`, 'success');
+
+      // Scroll to bottom
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    document.getElementById('addRowBtn').addEventListener('click', handleAddRow);
+    document.getElementById('addFirstRowBtn').addEventListener('click', handleAddRow);
+
+    // ========================================================
+    // STATS & KPIS CALCULATION
+    // ========================================================
+    function updateKpis() {
+      const totalLots = state.rows.length;
+      let totalCutting = 0;
+      let totalJama = 0;
+      let totalDamage = 0;
+      let paymentsDoneCount = 0;
+
+      state.rows.forEach(r => {
+        // Cutting pieces
+        const cut = parseInt(r.peiceData?.peice, 10);
+        if (!isNaN(cut)) totalCutting += cut;
+
+        // Jama pieces from packing
+        const jm = getPackingTotal(r.packing);
+        totalJama += jm;
+
+        // Damage pieces
+        const dam = parseInt(r.damage?.peice, 10);
+        if (!isNaN(dam)) totalDamage += dam;
+
+        // Count paid cells
+        if (r.embroidery?.paymentDone) paymentsDoneCount++;
+        if (r.fabrication?.paymentDone) paymentsDoneCount++;
+        if (r.tanki?.paymentDone) paymentsDoneCount++;
+        if (r.washing?.paymentDone) paymentsDoneCount++;
+        if (r.packing?.paymentDone) paymentsDoneCount++;
+        if (r.damage?.paymentDone) paymentsDoneCount++;
+        if (r.print?.paymentDone) paymentsDoneCount++;
+      });
+
+      const pendingPcs = Math.max(0, totalCutting - totalJama - totalDamage);
+
+      document.getElementById('kpiTotalLots').textContent = totalLots;
+      document.getElementById('kpiCuttingPcs').textContent = totalCutting.toLocaleString();
+      document.getElementById('kpiJamaPcs').textContent = totalJama.toLocaleString();
+      document.getElementById('kpiDamagePcs').textContent = totalDamage.toLocaleString();
+      document.getElementById('kpiPendingPcs').textContent = pendingPcs.toLocaleString();
+      document.getElementById('kpiPaymentsDone').textContent = paymentsDoneCount;
+    }
+
+    // ========================================================
+    // MODAL CLOSE & UTILS
+    // ========================================================
+    function closeAllModals() {
+      document.querySelectorAll('#modalPeice, #modalWorkflow, #modalPacking, #modalCloudSync, #modalHelp').forEach(m => {
+        m.classList.add('hidden');
+      });
+    }
+
+    document.querySelectorAll('.modal-close-btn').forEach(btn => {
+      btn.addEventListener('click', closeAllModals);
+    });
+
+    // Close on escape key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAllModals();
+    });
+
+    // Header buttons
+    document.getElementById('openCloudSyncBtn').addEventListener('click', () => {
+      document.getElementById('modalCloudSync').classList.remove('hidden');
+    });
+
+    document.getElementById('openHelpBtn').addEventListener('click', () => {
+      document.getElementById('modalHelp').classList.remove('hidden');
+    });
+
+    // User change
+    document.getElementById('currentUserSelect').addEventListener('change', (e) => {
+      state.currentUser = e.target.value;
+      showToast(`Switched active user to: ${state.currentUser}`, 'info');
+    });
+
+    // Search filter
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    searchInput.addEventListener('input', () => {
+      if (searchInput.value.trim()) {
+        clearSearchBtn.classList.remove('hidden');
+      } else {
+        clearSearchBtn.classList.add('hidden');
+      }
+      renderTable();
+    });
+
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      clearSearchBtn.classList.add('hidden');
+      renderTable();
+    });
+
+    // ========================================================
+    // EXPORT & PRINT
+    // ========================================================
+    document.getElementById('printTableBtn').addEventListener('click', () => {
+      window.print();
+    });
+
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+      if (state.rows.length === 0) {
+        showToast('Export karne ke liye koi data nahi hai', 'error');
+        return;
+      }
+
+      let csv = 'Lot No,Cutting Date,Peice,Size,Fabric,Master,Embroidery Name,Embroidery Pcs,Embroidery Paid,Fabrication Name,Fabrication Pcs,Fabrication Paid,Tanki Name,Tanki Pcs,Tanki Paid,Washing Name,Washing Pcs,Washing Paid,Packing Total (Jama),Packing Paid,Damage Name,Damage Pcs,Print Name,Print Pcs\n';
+
+      state.rows.forEach(r => {
+        const p = r.peiceData || {};
+        const emb = r.embroidery || {};
+        const fab = r.fabrication || {};
+        const tan = r.tanki || {};
+        const wash = r.washing || {};
+        const pack = r.packing || {};
+        const dam = r.damage || {};
+        const prn = r.print || {};
+        const jama = getPackingTotal(pack);
+
+        csv += `"${r.lotNo || ''}","${p.date || ''}","${p.peice || ''}","${p.size || ''}","${p.fabric || ''}","${p.master || ''}","${emb.name || ''}","${emb.peice || ''}","${emb.paymentDone ? 'Yes' : 'No'}","${fab.name || ''}","${fab.peice || ''}","${fab.paymentDone ? 'Yes' : 'No'}","${tan.name || ''}","${tan.peice || ''}","${tan.paymentDone ? 'Yes' : 'No'}","${wash.name || ''}","${wash.peice || ''}","${wash.paymentDone ? 'Yes' : 'No'}","${jama}","${pack.paymentDone ? 'Yes' : 'No'}","${dam.name || ''}","${dam.peice || ''}","${prn.name || ''}","${prn.peice || ''}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `lot_production_register_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('CSV Export download shuru ho gaya!', 'success');
+    });
+
+    // Backup & Restore
+    document.getElementById('downloadBackupBtn').addEventListener('click', () => {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `addis_lot_tracker_backup_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Backup JSON downloaded successfully');
+    });
+
+    document.getElementById('restoreFileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const imported = JSON.parse(event.target.result);
+          if (imported && Array.isArray(imported.rows)) {
+            state.rows = imported.rows;
+            saveState();
+            renderTable();
+            closeAllModals();
+            showToast('Data backup successfully restored!', 'success');
+          } else {
+            showToast('Invalid backup file format', 'error');
+          }
+        } catch (err) {
+          showToast('JSON parse error: File sahi nahi hai', 'error');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // In-Page Toast Notifications
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      let bg = 'bg-slate-800 text-white';
+      let icon = 'info';
+
+      if (type === 'success') {
+        bg = 'bg-emerald-700 text-white';
+        icon = 'check-circle';
+      } else if (type === 'error') {
+        bg = 'bg-rose-700 text-white';
+        icon = 'alert-circle';
+      }
+
+      toast.className = `${bg} px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-medium pointer-events-auto transition transform translate-y-2 opacity-0`;
+      toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i> <span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+
+      if (window.lucide) window.lucide.createIcons();
+
+      // Animate in
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      // Remove after 3.5s
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // In-Page Custom Confirm Dialog
+    function showConfirm(question, onConfirm) {
+      const existing = document.getElementById('customConfirmModal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'customConfirmModal';
+      modal.className = 'fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4';
+      modal.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-5 text-center space-y-3">
+          <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+            <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+          </div>
+          <h4 class="text-sm font-bold text-slate-800">${escapeHtml(question)}</h4>
+          <p class="text-xs text-slate-500">Yeh action undo nahi kiya ja sakega.</p>
+          <div class="pt-2 flex gap-2">
+            <button id="cancelConfirmBtn" class="flex-1 py-2 text-xs border border-slate-300 rounded-lg text-slate-700 font-semibold hover:bg-slate-100">Cancel</button>
+            <button id="okConfirmBtn" class="flex-1 py-2 text-xs bg-rose-600 rounded-lg text-white font-semibold hover:bg-rose-700">Delete</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      if (window.lucide) window.lucide.createIcons();
+
+      document.getElementById('cancelConfirmBtn').onclick = () => modal.remove();
+      document.getElementById('okConfirmBtn').onclick = () => {
+        modal.remove();
+        onConfirm();
+      };
+    }
+
+    // App Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      initSync();
+      renderTable();
+      updateKpis();
+    });
+  </script>
+</body>
+</html>
+```
